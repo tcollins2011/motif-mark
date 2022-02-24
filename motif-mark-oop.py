@@ -36,11 +36,12 @@ def get_args():
 # Gene Class
 class Gene:
 
-    def __init__(self, sequence, motif_targets = {}):
+    def __init__(self, sequence, file_name, motif_targets = {}):
         self.sequence = sequence
         self.motif_targets = motif_targets
         self.exons = ''
         self.introns = ''
+        self.file_name = file_name
 
 
     def find_exons_and_introns(self):
@@ -54,6 +55,8 @@ class Gene:
             self.motif_targets[motif.sequence] = matches
         
     def draw(self):
+        # one graph per fasta file
+        # Should have the same name as the input fasta file 
         pass
 
 # Motif Class
@@ -88,18 +91,43 @@ def create_genes(gene_file, motifs):
     one_line_fasta = Bio_Module.oneline_fasta(gene_file)
     for line in one_line_fasta:
         gene, sequence = line
-        gene = Gene(sequence)
+        gene = Gene(sequence,gene_file)
         genes.append(gene)
     for gene in genes:
         gene.find_exons_and_introns()
         gene.find_motifs(motifs)
     return genes
-        
+
+# Function to Draw PNG
+def create_marked_motifs(genes,output_name):
+    HEIGHT = 2000
+    WIDTH = 2000
+    ims = cairo.ImageSurface(cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
+    cr = cairo.Context(ims)
+
+    for gene in genes:
+        pass
+    # cr.set_source_rgb(0.6, 0.6, 0.6)
+
+    # cr.rectangle(20, 20, 120, 80)
+    # cr.fill()
+
+    # cr.rectangle(180, 20, 80, 80)
+    # cr.fill()
+    
+    # cr.set_line_width(1.5)
+    # cr.move_to(120,150)
+    # cr.line_to(360, 350)
+    # cr.stroke()
+
+    output = output_name.split('.')[0]
+    ims.write_to_png(f'{output}.png')
+    
 def main():
     args = get_args()
     motifs =create_motifs(args.m)
     genes = create_genes(args.f,motifs)
-    
+    create_marked_motifs(genes,args.f)
    
 
 if __name__ == "__main__":    
