@@ -48,7 +48,7 @@ class Gene:
         self.introns = ''
         self.file_name = file_name
 
-
+    # Create a list of all exons. Each exon is a list within this list that cotains all of its index postions.
     def find_exons_and_introns(self):
         self.exons = [index for index in range(len(self.sequence)) if self.sequence[index].isupper()]
         self.introns = [index for index in range(len(self.sequence)) if self.sequence[index].islower()]
@@ -56,7 +56,7 @@ class Gene:
         
 
     def find_motifs(self,motifs):
-        
+        # Find where each motif matches against 
         for motif in motifs:
             matches = ([(m.start(0), m.end(0)) for m in re.finditer(motif.ambiguous, self.sequence.upper())])
             self.motif_targets[motif.sequence] = matches
@@ -152,14 +152,13 @@ def create_marked_motifs(genes,output_name, motifs):
         cr.line_to(len(gene.sequence) + 100,target_height + 50)
         cr.stroke()
 
-        # Loop through exon list
+        # Loop through exon list and draw them
         for i in gene.exons:
             
             cr.rectangle(i[0], target_height + 35, len(i), 30)
             cr.fill()
 
-        # Add Motifs 
-        
+        # Add Motifs  and draw them
         for item in gene.motif_targets.items():
             name,sequence = item
             for i in motifs:
@@ -167,21 +166,20 @@ def create_marked_motifs(genes,output_name, motifs):
                     cr.set_source_rgb(i.color[0] /255,i.color[1] /255,i.color[2] / 255)      
             if sequence:
                 for hit in sequence:
-                    print(hit[1] - hit[0])
-                    
                     cr.rectangle(hit[0] + 100, target_height + 40 , hit[1] - hit[0], 20)
                     cr.fill()
-            
+
+    # Save Image     
     output = output_name.split('.')[0]
     ims.write_to_png(f'{output}.png')
-    
+
+
 def main():
     args = get_args()
     motifs = create_motifs(args.m)
     genes = create_genes(args.f,motifs)
     create_marked_motifs(genes,args.f,motifs)
-    print(genes[0].motif_targets)
-    print(len(genes[0].sequence))
+   
    
 
 if __name__ == "__main__":    
