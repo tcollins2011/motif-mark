@@ -5,6 +5,7 @@ import Bio_Module
 from operator import itemgetter
 from itertools import *
 
+
 # Creation of Degerante Base Reference 
 Degenerate_Bases = {'A':'[A]', 'C':'[C]', 'T':'[T]', 'G':'[G]', 'U':'[U]',
 'W':'[A|T]', 'S': '[C|G]',
@@ -12,6 +13,7 @@ Degenerate_Bases = {'A':'[A]', 'C':'[C]', 'T':'[T]', 'G':'[G]', 'U':'[U]',
 'R':'[A|G]', 'Y':'[C|T]',
 'B':'[C|G|T]', 'D':'[A|G|T]', 'H':'[A|C|T]', 'V':'[A|C|G]', 'N':'[A|C|G|T]'}
 
+Avaliable_Colors = [[128,0,0], [250,128,114], [34,139,34], [0,139,139], [138,43,226], [72,61,139], [210,105,30]]
 # Get command Line Arguments
 def get_args():
     parser = argparse.ArgumentParser(
@@ -63,10 +65,11 @@ class Gene:
 # Motif Class
 class Motif:
 
-    def __init__(self,sequence):
+    def __init__(self,sequence, color):
         self.sequence = sequence
         self.ambiguous = ''
         self.lower = any(c.islower() for c in sequence)
+        self.color = color
     
     def find_ambiguous_sequences(self,sequence,ambiguous_dict):
         # Construct ambiguous regex expression
@@ -80,7 +83,8 @@ def create_motifs(motif_file):
     with open (motif_file, 'r') as f:
         for line in f:
             x = line.strip()
-            x = Motif(x)
+            color = Avaliable_Colors.pop()
+            x = Motif(x,color)
             motifs.append(x)  
     for motif in motifs:
         motif.find_ambiguous_sequences(motif.sequence,motif.ambiguous)
@@ -102,9 +106,9 @@ def create_genes(gene_file, motifs):
     return genes
 
 # Function to Draw PNG
-def create_marked_motifs(genes,output_name):
+def create_marked_motifs(genes,output_name, motifs):
     HEIGHT = 200 + len(genes) * 200
-    WIDTH = 2000
+    WIDTH = 2 * len(genes[0].sequence)
     ims = cairo.ImageSurface(cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
     cr = cairo.Context(ims)
 
@@ -117,10 +121,24 @@ def create_marked_motifs(genes,output_name):
     cr.move_to(WIDTH/2 - width/2,100)
     cr.show_text("Motif Mapping")
 
-    # Draw Motif thing
-
-    cr.rectangle(1400, HEIGHT/2, 8*len(genes[0].motif_targets), 80)
+    # Draw Motif Legend
+    cr.set_source_rgb(1, 1, 1)
+    cr.set_font_size(30)
+    (x, y, width, height, dx, dy) = cr.text_extents("Motif Legend")
+    cr.move_to(WIDTH/1.2 - width/2,HEIGHT /2.8)
+    cr.show_text("Motif Legend")
+    cr.rectangle(WIDTH/1.3 - 10, HEIGHT/2.8 + 50, WIDTH / 6, HEIGHT / 6)
     cr.fill()
+    cr.set_font_size(15)
+    for index,i in enumerate(motifs):
+        cr.set_source_rgb(i.color[0] /255,i.color[1] /255,i.color[2] / 255)
+        name = i.sequence
+        cr.rectangle(WIDTH/1.3, HEIGHT/2.8 + 60 + 30 * index, 20, 20) 
+        cr.fill()
+        cr.set_source_rgb(0,0,0)
+        cr.move_to(WIDTH/1.3 + 40 , HEIGHT/2.8 + 60 + 30 * index + 15)
+        cr.show_text(name)
+
 
     # Draw Genes
     cr.set_font_size(40)
@@ -131,7 +149,7 @@ def create_marked_motifs(genes,output_name):
         cr.show_text(gene.name)
         cr.move_to(100, target_height + 50)
         cr.set_line_width(5)
-        cr.line_to(len(gene.sequence),target_height + 50)
+        cr.line_to(len(gene.sequence) + 100,target_height + 50)
         cr.stroke()
 
         # Loop through exon list
@@ -141,15 +159,19 @@ def create_marked_motifs(genes,output_name):
             cr.fill()
 
         # Add Motifs 
+        
         for item in gene.motif_targets.items():
             name,sequence = item
+            for i in motifs:
+                if name == i.sequence:
+                    cr.set_source_rgb(i.color[0] /255,i.color[1] /255,i.color[2] / 255)      
             if sequence:
-                cr.set_source_rgb(0.3, 0.3, 1)
                 for hit in sequence:
                     print(hit[1] - hit[0])
-                    cr.rectangle(hit[0] + 100, target_height + 40, hit[1] - hit[0], 20)
+                    
+                    cr.rectangle(hit[0] + 100, target_height + 40 , hit[1] - hit[0], 20)
                     cr.fill()
-
+            
     output = output_name.split('.')[0]
     ims.write_to_png(f'{output}.png')
     
@@ -157,7 +179,7 @@ def main():
     args = get_args()
     motifs = create_motifs(args.m)
     genes = create_genes(args.f,motifs)
-    create_marked_motifs(genes,args.f)
+    create_marked_motifs(genes,args.f,motifs)
     print(genes[0].motif_targets)
     print(len(genes[0].sequence))
    
