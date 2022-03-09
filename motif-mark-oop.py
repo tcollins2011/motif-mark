@@ -13,7 +13,7 @@ Degenerate_Bases = {'A':'[A]', 'C':'[C]', 'T':'[T]', 'G':'[G]', 'U':'[U]',
 'R':'[A|G]', 'Y':'[C|T]',
 'B':'[C|G|T]', 'D':'[A|G|T]', 'H':'[A|C|T]', 'V':'[A|C|G]', 'N':'[A|C|G|T]'}
 
-Avaliable_Colors = [[128,0,0], [250,128,114], [34,139,34], [0,139,139], [138,43,226], [72,61,139], [210,105,30]]
+Avaliable_Colors = [[128,0,0], [130,50,50], [250,128,114], [34,139,34], [0,139,139], [138,43,226], [72,61,139], [210,105,30]]
 # Get command Line Arguments
 def get_args():
     parser = argparse.ArgumentParser(
